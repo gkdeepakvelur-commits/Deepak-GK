@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - Student Result Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-search me-2"></i>Search Student Results</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.roll_no.label(class="form-label") }}
+                        {{ form.roll_no(class="form-control" + (" is-invalid" if form.roll_no.errors else ""), placeholder="Enter student roll number") }}
+                        {% if form.roll_no.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.roll_no.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.date_of_birth.label(class="form-label") }}
+                        {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else "")) }}
+                        {% if form.date_of_birth.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.date_of_birth.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Optional: Enter date of birth for verification</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Search Results
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Enter your roll number to view your academic results
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Tips -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Search Tips</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle text-success me-2"></i>What you need:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-id-card me-2 text-primary"></i>Your roll number</li>
+                            <li><i class="fas fa-calendar me-2 text-info"></i>Date of birth (optional)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle text-info me-2"></i>Remember:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-spell-check me-2 text-warning"></i>Check roll number spelling</li>
+                            <li><i class="fas fa-calendar-check me-2 text-success"></i>Date format: YYYY-MM-DD</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

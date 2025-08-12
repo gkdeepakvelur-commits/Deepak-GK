@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}All Subjects - Student Result Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2><i class="fas fa-book me-2"></i>All Subjects</h2>
+            <a href="{{ url_for('add_subject') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Subject
+            </a>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<!-- Subjects Cards -->
+<div class="row">
+    {% if subjects %}
+    {% for subject in subjects %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-primary">{{ subject.code }}</h6>
+                <span class="badge bg-info">{{ subject.credits }} Credits</span>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ subject.name }}</h5>
+                <div class="mb-3">
+                    {% if subject.department %}
+                    <p class="mb-1"><i class="fas fa-building me-2 text-muted"></i>{{ subject.department }}</p>
+                    {% endif %}
+                    {% if subject.semester %}
+                    <p class="mb-1"><i class="fas fa-calendar me-2 text-muted"></i>Semester {{ subject.semester }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Subject Statistics -->
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h6 class="text-primary mb-0">{{ subject.marks|length }}</h6>
+                            <small class="text-muted">Students</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-success mb-0">
+                            {% if subject.marks %}
+                            {{ "%.1f"|format((subject.marks|sum(attribute='marks_obtained') / subject.marks|length) if subject.marks else 0) }}
+                            {% else %}
+                            0
+                            {% endif %}
+                        </h6>
+                        <small class="text-muted">Avg Score</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ url_for('view_subject_details', subject_id=subject.id) if url_for('view_subject_details', subject_id=subject.id) else '#' }}" 
+                       class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-eye me-1"></i>View
+                    </a>
+                    <a href="{{ url_for('edit_subject', subject_id=subject.id) if url_for('edit_subject', subject_id=subject.id) else '#' }}" 
+                       class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                    {% if session.role == 'admin' %}
+                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                            onclick="confirmDeleteSubject('{{ subject.id }}', '{{ subject.name }}')">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+            <h5>No Subjects Found</h5>
+            <p class="text-muted">No subjects have been added yet.</p>
+            <a href="{{ url_for('add_subject') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add First Subject
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Summary Statistics -->
+{% if subjects %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Subject Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h3 class="text-primary">{{ subjects|length }}</h3>
+                        <p class="text-muted mb-0">Total Subjects</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-success">{{ subjects|selectattr('department')|groupby('department')|list|length }}</h3>
+                        <p class="text-muted mb-0">Departments</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-info">{{ subjects|sum(attribute='credits') }}</h3>
+                        <p class="text-muted mb-0">Total Credits</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-warning">{{ subjects|selectattr('marks')|map(attribute='marks')|sum|length }}</h3>
+                        <p class="text-muted mb-0">Total Enrollments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department-wise Breakdown -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-building me-2"></i>Department-wise Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Subjects</th>
+                                <th>Total Credits</th>
+                                <th>Active Enrollments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for department, dept_subjects in subjects|selectattr('department')|groupby('department') %}
+                            <tr>
+                                <td><strong>{{ department or 'No Department' }}</strong></td>
+                                <td>{{ dept_subjects|list|length }}</td>
+                                <td>{{ dept_subjects|sum(attribute='credits') }}</td>
+                                <td>{{ dept_subjects|map(attribute='marks')|sum|length }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if subjects|rejectattr('department') %}
+                            <tr>
+                                <td><strong>No Department</strong></td>
+                                <td>{{ subjects|rejectattr('department')|list|length }}</td>
+                                <td>{{ subjects|rejectattr('department')|sum(attribute='credits') }}</td>
+                                <td>{{ subjects|rejectattr('department')|map(attribute='marks')|sum|length }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+{% if session.role == 'admin' %}
+<div class="modal fade" id="deleteSubjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete Subject</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the subject <strong id="subjectName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This will also delete all associated marks and cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteSubjectForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete Subject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if session.role == 'admin' %}
+<script>
+function confirmDeleteSubject(subjectId, subjectName) {
+    document.getElementById('subjectName').textContent = subjectName;
+    document.getElementById('deleteSubjectForm').action = '/delete_subject/' + subjectId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
+    modal.show();
+}
+</script>
+{% endif %}
+{% endblock %}

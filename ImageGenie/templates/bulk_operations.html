@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Operations - Student Result Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-tasks me-2"></i>Bulk Operations</h2>
+        <p class="text-muted">Perform operations on multiple students or marks at once.</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Bulk Student Operations -->
+    <div class="col-md-6 mb-4">
+        <div class="card bulk-operation-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Student Operations</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="showBulkStudentForm()">
+                        <i class="fas fa-upload me-2"></i>Import Students from CSV
+                    </button>
+                    <a href="{{ url_for('export_results', format='excel') }}" class="btn btn-outline-success export-btn" 
+                       data-format="excel" data-endpoint="{{ url_for('export_results', format='excel') }}">
+                        <i class="fas fa-download me-2"></i>Export All Students
+                    </a>
+                    <button class="btn btn-outline-info" onclick="downloadStudentTemplate()">
+                        <i class="fas fa-file-download me-2"></i>Download Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Marks Operations -->
+    <div class="col-md-6 mb-4">
+        <div class="card bulk-operation-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Marks Operations</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success" onclick="showBulkMarksForm()">
+                        <i class="fas fa-upload me-2"></i>Import Marks from CSV
+                    </button>
+                    <button class="btn btn-outline-info" onclick="exportAllMarks()">
+                        <i class="fas fa-download me-2"></i>Export All Marks
+                    </button>
+                    <button class="btn btn-outline-info" onclick="downloadMarksTemplate()">
+                        <i class="fas fa-file-download me-2"></i>Download Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Students Form -->
+<div id="bulkStudentForm" class="row" style="display: none;">
+    <div class="col-12">
+        <div class="card fade-in-up">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Import Students from CSV</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>CSV Format:</strong> roll_no, name, email, phone, date_of_birth (YYYY-MM-DD), department, semester, admission_year, address
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('bulk_operations') }}">
+                    <input type="hidden" name="operation" value="import_students">
+                    
+                    <div class="csv-upload-zone mb-3">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h5>Drop CSV file here or click to browse</h5>
+                        <p class="text-muted">Maximum file size: 10MB</p>
+                        <input type="file" name="csv_file" accept=".csv" style="display: none;" required>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="skip_header" class="form-check-input" id="skipHeader" checked>
+                        <label class="form-check-label" for="skipHeader">Skip first row (header)</label>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="hideBulkForms()">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Import Students
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Marks Form -->
+<div id="bulkMarksForm" class="row" style="display: none;">
+    <div class="col-12">
+        <div class="card fade-in-up">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Import Marks from CSV</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>CSV Format:</strong> roll_no, subject_code, marks_obtained, total_marks, exam_type, exam_date (YYYY-MM-DD)
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('bulk_operations') }}">
+                    <input type="hidden" name="operation" value="import_marks">
+                    
+                    <div class="csv-upload-zone mb-3">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h5>Drop CSV file here or click to browse</h5>
+                        <p class="text-muted">Maximum file size: 10MB</p>
+                        <input type="file" name="csv_file" accept=".csv" style="display: none;" required>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="skip_header" class="form-check-input" id="skipHeaderMarks" checked>
+                        <label class="form-check-label" for="skipHeaderMarks">Skip first row (header)</label>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="hideBulkForms()">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-upload me-2"></i>Import Marks
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Operations -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Bulk Operations</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_operations %}
+                <div class="data-table-container">
+                    <table class="table data-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Operation</th>
+                                <th>User</th>
+                                <th>Progress</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for operation in recent_operations %}
+                            <tr>
+                                <td>{{ operation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <i class="fas fa-{{ 'users' if 'student' in operation.operation_type else 'clipboard-list' }} me-2"></i>
+                                    {{ operation.operation_type.replace('_', ' ').title() }}
+                                </td>
+                                <td>{{ operation.user.username }}</td>
+                                <td>
+                                    <div class="bulk-progress" data-operation-id="{{ operation.id }}">
+                                        <div class="progress mb-1" style="height: 6px;">
+                                            {% set percentage = (operation.processed_records / operation.total_records * 100) if operation.total_records > 0 else 0 %}
+                                            <div class="progress-bar bg-{{ 'success' if operation.status == 'completed' else 'warning' if operation.status == 'pending' else 'danger' }}" 
+                                                 style="width: {{ percentage }}%"></div>
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ operation.processed_records }}/{{ operation.total_records }}
+                                            {% if operation.failed_records > 0 %}
+                                                ({{ operation.failed_records }} failed)
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge {{ operation.status }}">
+                                        {{ operation.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if operation.error_log %}
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="showErrorLog('{{ operation.id }}', '{{ operation.error_log|e }}')"
+                                            title="View Errors">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            onclick="viewOperationDetails('{{ operation.id }}')"
+                                            title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h5>No bulk operations performed yet</h5>
+                    <p class="text-muted">Start by importing students or marks using the forms above.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sample CSV Templates -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-download me-2"></i>Sample CSV Templates</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Download sample CSV files to see the correct format for bulk imports.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="export-option" onclick="downloadStudentTemplate()">
+                            <div class="export-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="export-title">Student Template</div>
+                            <div class="export-description">Sample CSV format for importing students</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="export-option" onclick="downloadMarksTemplate()">
+                            <div class="export-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div class="export-title">Marks Template</div>
+                            <div class="export-description">Sample CSV format for importing marks</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Log Modal -->
+<div class="modal fade" id="errorLogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Operation Error Log</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="errorLogContent" class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="downloadErrorLog()">
+                    <i class="fas fa-download me-2"></i>Download Log
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showBulkStudentForm() {
+    hideBulkForms();
+    const form = document.getElementById('bulkStudentForm');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth' });
+    form.classList.add('fade-in-up');
+}
+
+function showBulkMarksForm() {
+    hideBulkForms();
+    const form = document.getElementById('bulkMarksForm');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth' });
+    form.classList.add('fade-in-up');
+}
+
+function hideBulkForms() {
+    document.getElementById('bulkStudentForm').style.display = 'none';
+    document.getElementById('bulkMarksForm').style.display = 'none';
+}
+
+function downloadStudentTemplate() {
+    const csvContent = "data:text/csv;charset=utf-8," +
+        "roll_no,name,email,phone,date_of_birth,department,semester,admission_year,address\n" +
+        "STU001,John Doe,john@example.com,1234567890,2000-01-15,Computer Science,3,2022,123 Main St\n" +
+        "STU002,Jane Smith,jane@example.com,0987654321,2001-03-20,Mathematics,2,2023,456 Oak Ave";
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "student_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    SRMS.showNotification('Student template downloaded successfully', 'success');
+}
+
+function downloadMarksTemplate() {
+    const csvContent = "data:text/csv;charset=utf-8," +
+        "roll_no,subject_code,marks_obtained,total_marks,exam_type,exam_date\n" +
+        "STU001,CS101,85,100,Final,2023-05-15\n" +
+        "STU002,MATH201,92,100,Mid-term,2023-04-10";
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", "marks_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    SRMS.showNotification('Marks template downloaded successfully', 'success');
+}
+
+function exportAllMarks() {
+    SRMS.showNotification('Marks export functionality coming soon', 'info');
+}
+
+function showErrorLog(operationId, errorLog) {
+    document.getElementById('errorLogContent').textContent = errorLog;
+    const modal = new bootstrap.Modal(document.getElementById('errorLogModal'));
+    modal.show();
+    
+    // Store operation ID for potential download
+    window.currentErrorLogOperationId = operationId;
+}
+
+function downloadErrorLog() {
+    const errorContent = document.getElementById('errorLogContent').textContent;
+    const blob = new Blob([errorContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `error_log_${window.currentErrorLogOperationId}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+}
+
+function viewOperationDetails(operationId) {
+    SRMS.showNotification('Operation details functionality coming soon', 'info');
+}
+
+// Initialize enhanced file upload when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // The main.js file will handle the enhanced upload functionality
+    SRMS.showNotification('Bulk operations ready', 'success', 2000);
+});
+</script>
+{% endblock %}

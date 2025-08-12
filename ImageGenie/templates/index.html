@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Student Result Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Hero Section -->
+        <div class="jumbotron bg-primary text-white rounded p-5 mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-4">
+                            <i class="fas fa-graduation-cap me-3"></i>
+                            Student Result Management System
+                        </h1>
+                        <p class="lead">
+                            Comprehensive academic result management solution for educational institutions.
+                            Track student performance, manage marks, and generate detailed reports.
+                        </p>
+                        {% if not session.user_id %}
+                        <a class="btn btn-light btn-lg" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Get Started
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-chart-line fa-10x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        {% if session.user_id %}
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Total Students</h5>
+                                <h2 class="mb-0">{{ total_students }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Total Subjects</h5>
+                                <h2 class="mb-0">{{ total_subjects }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-book fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Total Marks Entries</h5>
+                                <h2 class="mb-0">{{ total_marks }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-clipboard-list fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user-plus me-2"></i>Recently Added Students</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_students %}
+                        <div class="list-group list-group-flush">
+                            {% for student in recent_students %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ student.name }}</strong><br>
+                                    <small class="text-muted">{{ student.roll_no }}</small>
+                                </div>
+                                <small class="text-muted">{{ student.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">No students added yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-clipboard-check me-2"></i>Recent Marks Entries</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_marks %}
+                        <div class="list-group list-group-flush">
+                            {% for mark in recent_marks %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ mark.student.name }}</strong><br>
+                                    <small class="text-muted">{{ mark.subject.code }} - {{ mark.marks_obtained }}/{{ mark.total_marks }}</small>
+                                </div>
+                                <small class="text-muted">{{ mark.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-0">No marks entered yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Features Section -->
+        {% if not session.user_id %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Key Features</h2>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Student Management</h5>
+                        <p class="card-text">Complete student profile management with personal details, photos, and academic information.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Result Analytics</h5>
+                        <p class="card-text">Advanced analytics and reporting with performance insights and trend analysis.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-export fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Export & Reports</h5>
+                        <p class="card-text">Generate PDF and Excel reports for detailed result analysis and record keeping.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        {% if session.user_id %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <a href="{{ url_for('add_student') }}" class="btn btn-primary w-100">
+                                    <i class="fas fa-user-plus me-2"></i>Add Student
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a href="{{ url_for('add_marks') }}" class="btn btn-success w-100">
+                                    <i class="fas fa-plus me-2"></i>Add Marks
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a href="{{ url_for('all_students') }}" class="btn btn-info w-100">
+                                    <i class="fas fa-list me-2"></i>View Students
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <a href="{{ url_for('search_result') }}" class="btn btn-warning w-100">
+                                    <i class="fas fa-search me-2"></i>Search Results
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

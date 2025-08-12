@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}All Students - Student Result Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2><i class="fas fa-users me-2"></i>All Students</h2>
+            {% if session.user_id %}
+            <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Add Student
+            </a>
+            {% endif %}
+        </div>
+        <hr>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Search by name, roll no, or email" 
+                               value="{{ search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Department</label>
+                        <select name="department" class="form-select">
+                            <option value="">All Departments</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept }}" {% if dept == current_department %}selected{% endif %}>
+                                {{ dept }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Semester</label>
+                        <select name="semester" class="form-select">
+                            <option value="">All Semesters</option>
+                            {% for sem in semesters %}
+                            <option value="{{ sem }}" {% if sem|string == current_semester %}selected{% endif %}>
+                                Semester {{ sem }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-filter me-1"></i>Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Students Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        Students List 
+                        <span class="badge bg-secondary">{{ students.total }} total</span>
+                    </h5>
+                    {% if session.role == 'admin' %}
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-download me-1"></i>Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('export_results', format='pdf') }}">
+                                <i class="fas fa-file-pdf me-2"></i>PDF Report
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('export_results', format='excel') }}">
+                                <i class="fas fa-file-excel me-2"></i>Excel Spreadsheet
+                            </a></li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if students.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Semester</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Performance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students.items %}
+                            <tr>
+                                <td>
+                                    {% if student.image_filename %}
+                                    <img src="{{ url_for('uploaded_file', filename=student.image_filename) }}" 
+                                         alt="Photo" class="rounded-circle" 
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-light"></i>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ student.roll_no }}</strong></td>
+                                <td>{{ student.name }}</td>
+                                <td>{{ student.department or 'N/A' }}</td>
+                                <td>{{ student.semester or 'N/A' }}</td>
+                                <td>{{ student.email or 'N/A' }}</td>
+                                <td>{{ student.phone or 'N/A' }}</td>
+                                <td>
+                                    {% if student.marks %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-{% if student.get_grade() in ['A+', 'A'] %}success{% elif student.get_grade() in ['B+', 'B'] %}primary{% elif student.get_grade() in ['C+', 'C'] %}warning{% else %}danger{% endif %} me-2">
+                                            {{ student.get_grade() }}
+                                        </span>
+                                        <small class="text-muted">{{ "%.1f"|format(student.calculate_percentage()) }}%</small>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">No marks</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('view_result', roll_no=student.roll_no) }}" 
+                                           class="btn btn-outline-info" title="View Result">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if session.user_id %}
+                                        <a href="{{ url_for('edit_student', student_id=student.id) }}" 
+                                           class="btn btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if session.role == 'admin' %}
+                                        <button type="button" class="btn btn-outline-danger" 
+                                                onclick="confirmDelete('{{ student.id }}', '{{ student.name }}')" 
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if students.pages > 1 %}
+                <nav aria-label="Students pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if students.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('all_students', page=students.prev_num, search=search, department=current_department, semester=current_semester) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in students.iter_pages() %}
+                        {% if page_num %}
+                        {% if page_num != students.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('all_students', page=page_num, search=search, department=current_department, semester=current_semester) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if students.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('all_students', page=students.next_num, search=search, department=current_department, semester=current_semester) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5>No Students Found</h5>
+                    <p class="text-muted">
+                        {% if search or current_department or current_semester %}
+                        No students match your search criteria. Try adjusting your filters.
+                        {% else %}
+                        No students have been added yet.
+                        {% endif %}
+                    </p>
+                    {% if session.user_id and not (search or current_department or current_semester) %}
+                    <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Add First Student
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if session.role == 'admin' %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="studentName"></strong>?</p>
+                <p class="text-danger"><small>This action will deactivate the student and cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if session.role == 'admin' %}
+<script>
+function confirmDelete(studentId, studentName) {
+    document.getElementById('studentName').textContent = studentName;
+    document.getElementById('deleteForm').action = "{{ url_for('delete_student', student_id=0) }}".replace('0', studentId);
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endif %}
+{% endblock %}

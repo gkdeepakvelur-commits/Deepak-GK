@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Add Marks - Student Result Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-plus me-2"></i>Add/Update Marks</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Enter Marks</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.student_id.label(class="form-label") }}
+                        {{ form.student_id(class="form-select" + (" is-invalid" if form.student_id.errors else "")) }}
+                        {% if form.student_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.student_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.subject_id.label(class="form-label") }}
+                        {{ form.subject_id(class="form-select" + (" is-invalid" if form.subject_id.errors else "")) }}
+                        {% if form.subject_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.subject_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.marks_obtained.label(class="form-label") }}
+                            {{ form.marks_obtained(class="form-control" + (" is-invalid" if form.marks_obtained.errors else "")) }}
+                            {% if form.marks_obtained.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.marks_obtained.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.total_marks.label(class="form-label") }}
+                            {{ form.total_marks(class="form-control" + (" is-invalid" if form.total_marks.errors else "")) }}
+                            {% if form.total_marks.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.total_marks.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.exam_type.label(class="form-label") }}
+                        {{ form.exam_type(class="form-select" + (" is-invalid" if form.exam_type.errors else "")) }}
+                        {% if form.exam_type.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.exam_type.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.exam_date.label(class="form-label") }}
+                        {{ form.exam_date(class="form-control" + (" is-invalid" if form.exam_date.errors else "")) }}
+                        {% if form.exam_date.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.exam_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Marks
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Marks Entries</h5>
+            </div>
+            <div class="card-body">
+                {% if marks %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Marks</th>
+                                <th>Grade</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mark in marks %}
+                            <tr>
+                                <td>
+                                    <small>{{ mark.student.roll_no }}</small><br>
+                                    <small class="text-muted">{{ mark.student.name[:20] }}...</small>
+                                </td>
+                                <td>
+                                    <small>{{ mark.subject.code }}</small><br>
+                                    <small class="text-muted">{{ mark.exam_type }}</small>
+                                </td>
+                                <td>{{ mark.marks_obtained }}/{{ mark.total_marks }}</td>
+                                <td>
+                                    <span class="badge bg-{% if mark.get_grade() in ['A+', 'A'] %}success{% elif mark.get_grade() in ['B+', 'B'] %}primary{% elif mark.get_grade() in ['C+', 'C'] %}warning{% else %}danger{% endif %}">
+                                        {{ mark.get_grade() }}
+                                    </span>
+                                </td>
+                                <td><small>{{ mark.created_at.strftime('%m-%d') }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No marks entries yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-calculate percentage and show grade preview
+document.addEventListener('DOMContentLoaded', function() {
+    const marksObtained = document.getElementById('marks_obtained');
+    const totalMarks = document.getElementById('total_marks');
+    
+    function calculateGrade() {
+        const obtained = parseFloat(marksObtained.value) || 0;
+        const total = parseFloat(totalMarks.value) || 0;
+        
+        if (total > 0) {
+            const percentage = (obtained / total) * 100;
+            let grade = 'F';
+            
+            if (percentage >= 90) grade = 'A+';
+            else if (percentage >= 80) grade = 'A';
+            else if (percentage >= 70) grade = 'B+';
+            else if (percentage >= 60) grade = 'B';
+            else if (percentage >= 50) grade = 'C+';
+            else if (percentage >= 40) grade = 'C';
+            
+            // Show grade preview (you can add a div to display this)
+            console.log(`Percentage: ${percentage.toFixed(2)}%, Grade: ${grade}`);
+        }
+    }
+    
+    marksObtained.addEventListener('input', calculateGrade);
+    totalMarks.addEventListener('input', calculateGrade);
+});
+</script>
+{% endblock %}
